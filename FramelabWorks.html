@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>帧动画工坊 · 本地视频转透明帧动画</title>
+<style>
+:root{
+  --bg:#0c0d11; --panel:#15171f; --panel2:#1a1d26; --input:#10131a;
+  --border:#242a36; --border-hi:#353d4c;
+  --txt:#e9ebf0; --muted:#8b93a3;
+  --accent:#3ecf8e; --accent-hi:#5fe0a6; --accent-dim:rgba(62,207,142,.14);
+  --radius:12px; --shadow:0 10px 30px -16px rgba(0,0,0,.75);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;color:var(--txt);overflow:hidden;
+  font:13px/1.6 "Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(1100px 560px at 78% -12%, #161c27 0%, transparent 58%),
+    radial-gradient(900px 500px at -8% 110%, #151b22 0%, transparent 55%),
+    var(--bg);
+}
+button,input,select{font-family:inherit;font-size:12px;color:var(--txt);
+  background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;cursor:pointer;
+  transition:border-color .15s,background .15s,color .15s,transform .05s}
+button:hover{border-color:var(--border-hi);color:#fff}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.38;cursor:not-allowed;border-color:var(--border)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.primary{background:var(--accent);border-color:var(--accent);color:#07241a;font-weight:700;letter-spacing:.3px}
+button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi);color:#06241a}
+button.mini{padding:5px 10px;font-size:11px}
+button.mini.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+button.ghost{background:transparent;border-color:var(--border-hi);color:var(--muted)}
+button.ghost:hover{border-color:var(--accent);color:#fff}
+input{background:var(--input);cursor:text}
+input[type=number]{width:74px;padding:6px 8px}
+input[type=range]{-webkit-appearance:none;appearance:none;height:5px;border:none;padding:0;vertical-align:middle;
+  background:#2a313d;border-radius:6px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--accent);border:2px solid #0c0d11;box-shadow:0 0 0 1px var(--accent);transition:transform .1s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.18)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--accent);
+  border:2px solid #0c0d11;box-shadow:0 0 0 1px var(--accent);cursor:pointer}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;width:17px;height:17px;flex:none;
+  border:1px solid var(--border-hi);border-radius:5px;background:var(--input);position:relative;cursor:pointer;transition:.15s}
+input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+input[type=checkbox]:checked::after{content:"";position:absolute;left:5px;top:2px;width:4px;height:8px;
+  border:solid #07241a;border-width:0 2px 2px 0;transform:rotate(45deg)}
+label{display:flex;align-items:center;gap:8px;margin:9px 0;color:var(--muted)}
+.muted{color:var(--muted)}
+header{display:flex;align-items:center;gap:16px;padding:11px 16px;background:rgba(16,18,24,.72);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:800;letter-spacing:.4px}
+.logo .mark{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#2a9d6f);
+  box-shadow:0 2px 8px -2px var(--accent);position:relative}
+.logo .mark::after{content:"";position:absolute;inset:6px;border-radius:3px;background:#0c0d11;opacity:.85}
+.logo span{font-weight:400;font-size:11px;color:var(--muted);margin-left:2px}
+.steps{display:flex;gap:7px;flex:1;flex-wrap:wrap}
+.steps button{background:transparent;border-color:var(--border);color:var(--muted);padding:6px 12px;font-size:12px;
+  border-radius:20px}
+.steps button.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:600}
+.steps button:disabled:hover{border-color:var(--border);color:var(--muted)}
+#status{font-size:11px;color:#9fb6cf;min-width:230px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bar{height:2px;background:#1b2029}
+#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-hi));transition:width .12s}
+.body{display:flex;height:calc(100% - 47px)}
+aside{width:216px;flex:none;border-right:1px solid var(--border);padding:12px;overflow:auto;background:rgba(12,14,18,.55)}
+aside h4{margin:2px 0 10px;font-size:12px;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+aside h4 span{font-weight:400}
+.vid{display:flex;gap:8px;align-items:center;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;
+  transition:border-color .15s,background .15s}
+.vid:hover{border-color:var(--border-hi)}
+.vid.on{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-dim),transparent)}
+.vid .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--txt)}
+.vid .st{font-size:10px;color:var(--muted)}
+.vid .x{padding:2px 7px;font-size:11px;color:var(--muted)}
+.vid .x:hover{color:#ff8a8a;border-color:#5a2e2e}
+main{flex:1;overflow:auto;padding:18px 20px 48px}
+.pane{display:none;max-width:1080px}
+.pane.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.h{font-size:15px;font-weight:800;margin-bottom:14px;padding-left:11px;border-left:3px solid var(--accent)}
+.h small{font-weight:400;color:var(--muted);margin-left:8px;font-size:12px}
+.grid2{display:grid;grid-template-columns:minmax(340px,1fr) 300px;gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.info{color:#9aa3b4;line-height:1.9;font-size:12px}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:10px}
+video{width:100%;max-height:300px;background:#000;border-radius:10px;display:block}
+#thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:9px;margin-top:12px}
+.thumb{position:relative;height:100px;border:2px solid var(--border);border-radius:9px;background-size:cover;background-position:center;
+  cursor:pointer;background-color:#000;transition:border-color .12s,transform .08s}
+.thumb:hover{transform:translateY(-2px)}
+.thumb.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.thumb i{position:absolute;left:3px;top:3px;font-size:10px;background:rgba(0,0,0,.62);padding:1px 5px;border-radius:4px;
+  font-style:normal;color:#dfe5f1}
+.thumb.sel::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--accent) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2.5 6.2 5 8.5 9.5 3.5' fill='none' stroke='%2307241a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>") center/12px no-repeat}
+.stage{display:flex;justify-content:center;background:#0a0c11;border:1px solid var(--border);border-radius:var(--radius);padding:12px;overflow:auto}
+canvas{display:block;max-width:100%}
+#ccanvas{cursor:crosshair;background:#000;max-height:56vh;border-radius:6px}
+#mcanvas{cursor:crosshair;max-height:62vh;background-color:#1b2029;background-image:linear-gradient(45deg,#2a3140 25%,transparent 25%,transparent 75%,#2a3140 75%),linear-gradient(45deg,#2a3140 25%,transparent 25%,transparent 75%,#2a3140 75%);background-size:16px 16px;background-position:0 0,8px 8px}
+.swatch{width:36px;height:24px;border:1px solid var(--border-hi);border-radius:6px;cursor:pointer;background:#fff;transition:transform .08s}
+.swatch:hover{transform:scale(1.06)}
+.mtools{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.foot{margin-top:16px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.sep{height:1px;background:var(--border);margin:14px 0}
+kbd{background:var(--panel2);border:1px solid var(--border);border-radius:5px;padding:0 5px;font-size:11px}
+.empty{color:var(--muted);text-align:center;padding:90px 0;font-size:14px}
+#park{position:fixed;left:-9999px;top:0;width:2px;height:2px;overflow:hidden}
+.pvT{color:#9fb6cf;font-size:12px;margin-bottom:10px;font-weight:600}
+.pvImg{max-width:100%;max-height:340px;border:1px solid var(--border);border-radius:10px;display:block;background:
+  linear-gradient(45deg,#1b2029 25%,transparent 25%,transparent 75%,#1b2029 75%),
+  linear-gradient(45deg,#1b2029 25%,transparent 25%,transparent 75%,#1b2029 75%);background-size:16px 16px;background-position:0 0,8px 8px;background-color:#0a0c11}
+.pvMeta{color:var(--muted);font-size:11px;margin-top:10px;line-height:1.8}
+.pvRow{display:flex;gap:9px;flex-wrap:wrap}
+.pvThumb{width:88px;height:88px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background-color:#1b2029}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="mark"></span>帧动画工坊<span>本地离线 · 单文件 · 不上传</span></div>
+  <div class="steps" id="steps"></div>
+  <div id="status">就绪</div>
+</header>
+<div id="bar"><i></i></div>
+<div class="body">
+  <aside>
+    <h4>视频列表 <span class="muted" id="cnt">0/10</span></h4>
+    <button class="primary" style="width:100%" id="btnImport">+ 导入视频（可多选）</button>
+    <input type="file" id="fileIn" accept="video/*" multiple hidden>
+    <div style="height:10px"></div>
+    <div id="vlist"></div>
+    <div class="muted" style="font-size:11px;margin-top:10px;line-height:1.7">
+      流程：导入 → 裁时间 → 抽帧 → 选帧 → 框裁 → 抠图 → 导出<br>全部在本机浏览器完成。
+    </div>
+  </aside>
+  <main>
+    <div class="empty" id="empty">← 先从左侧导入并选择一个视频</div>
+
+    <!-- 1 时间裁剪 -->
+    <section class="pane" data-pane="1">
+      <div class="h">① 视频时间精准裁剪 <small>设定需要抽帧的时间区间</small></div>
+      <div class="grid2">
+        <div class="card">
+          <span id="vidSlot"></span>
+          <div id="vidHost"><video id="vid" controls playsinline preload="auto"></video></div>
+          <div class="row">
+            <button class="mini" id="btnSS">当前位置设为起点</button>
+            <button class="mini" id="btnSE">当前位置设为终点</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="info" id="vinfo">—</div>
+          <div class="sep"></div>
+          <label>起始 <input type="number" id="tsS" value="0" min="0"> 秒 <input type="number" id="tsMS" value="0" min="0" max="999"> 毫秒</label>
+          <label>结束 <input type="number" id="teS" value="0" min="0"> 秒 <input type="number" id="teMS" value="0" min="0" max="999"> 毫秒</label>
+          <label>源帧率 <input type="number" id="fps" value="30" step="0.001" min="1" max="240"> fps</label>
+          <div class="row">
+            <button class="mini" id="btnAll">全片</button>
+            <button class="mini" id="btnFromNow">当前位置 → 结尾</button>
+          </div>
+        </div>
+      </div>
+      <div class="foot"><button class="primary" id="btnGo2">下一步：解析帧 →</button></div>
+    </section>
+
+    <!-- 2 抽帧 -->
+    <section class="pane" data-pane="2">
+      <div class="h">② 自定义间隔抽帧解析 <small>本地解码，不上传</small></div>
+      <div class="card" style="max-width:520px">
+        <label>每隔 <input type="number" id="everyN" value="2" min="1"> 帧抽取 1 帧</label>
+        <label>解析宽度上限 <input type="number" id="maxW" value="1280" min="0"> px <span class="muted">（0 = 原始分辨率）</span></label>
+        <div class="info" id="est">预计 0 帧</div>
+        <div class="row">
+          <button class="primary" id="btnExtract">确认解析帧</button>
+          <button class="mini" id="btnFF">启用 ffmpeg.wasm 精确抽帧（需联网）</button>
+        </div>
+        <div class="muted" style="font-size:11px;margin-top:8px">默认使用浏览器原生解码引擎（离线可用、速度快）；ffmpeg 模式为可选增强。</div>
+      </div>
+      <div class="foot"><button class="primary" id="btnGo3" disabled>下一步：筛选帧 →</button></div>
+    </section>
+
+    <!-- 3 选帧 -->
+    <section class="pane" data-pane="3">
+      <div class="h">③ 帧手动筛选 <small>点击缩略图选中 / 取消，未选中帧不参与后续处理</small></div>
+      <div class="row">
+        <button class="mini" id="btnAllF">全选</button>
+        <button class="mini" id="btnInvF">反选</button>
+        <button class="mini" id="btnNonF">全不选</button>
+        <span class="muted" id="selInfo"></span>
+      </div>
+      <div id="thumbs"></div>
+      <div class="foot"><button class="primary" id="btnGo4">下一步：画布框裁 →</button></div>
+    </section>
+
+    <!-- 4 框裁 -->
+    <section class="pane" data-pane="4">
+      <div class="h">④ 精准画布框式裁剪 <small>仿微信截图选框：拖拽绘制 / 拖动移动 / 八把手缩放</small></div>
+      <div class="row" style="margin-bottom:8px">
+        <button class="mini" id="btnResetCrop">重置为全画面</button>
+        <span class="muted" id="cropInfo"></span>
+      </div>
+      <div class="stage"><canvas id="ccanvas"></canvas></div>
+      <div class="foot">
+        <button class="primary" id="btnGo5">应用裁剪到所有选中帧 →</button>
+        <span class="muted">裁剪参数将批量应用到全部已选帧</span>
+      </div>
+    </section>
+
+    <!-- 5 抠图 -->
+    <section class="pane" data-pane="5">
+      <div class="h">⑤ 批量抠图 <small>输出透明背景帧</small></div>
+      <div class="grid2">
+        <div>
+          <div class="stage"><canvas id="mcanvas"></canvas></div>
+          <div class="mtools">
+            <button class="mini" id="btnPrevF">← 上一帧</button>
+            <button class="mini" id="btnNextF">下一帧 →</button>
+            <span class="muted" id="mIdx"></span>
+            <button class="mini" id="btnPick">吸管取背景色</button>
+            <button class="mini" id="btnErase">橡皮擦</button>
+            <button class="mini" id="btnUndo">还原本帧</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <button class="mini on" id="mChroma">色差快速抠图</button>
+            <button class="mini" id="mAlpha">Alpha 通道提取</button>
+          </div>
+          <div class="sep"></div>
+          <div id="chromaCfg">
+            <label>背景色 <div class="swatch" id="bgSw"></div><button class="mini" id="btnAutoBg">自动识别</button><span class="muted" id="bgTxt"></span></label>
+            <label>容差 <input type="range" id="tol" min="1" max="100" value="6"><span class="muted" id="tolTxt"></span></label>
+            <label><input type="checkbox" id="prot" checked> 保护主体色彩（防误删）</label>
+          </div>
+          <div id="alphaCfg" style="display:none">
+            <label>Alpha 阈值 <input type="range" id="athr" min="0" max="100" value="50"><span class="muted" id="athrTxt"></span></label>
+          </div>
+          <label><input type="checkbox" id="soft" checked> 抗锯齿羽化边缘</label>
+          <label><input type="checkbox" id="defr" checked> 去除白边 / 溢出色</label>
+          <div class="sep"></div>
+          <label>橡皮擦大小 <input type="range" id="erSize" min="2" max="120" value="24"><span class="muted" id="erTxt"></span></label>
+          <div class="row">
+            <button class="mini" id="btnPrev1">预览本帧效果</button>
+            <button class="primary" id="btnMatte">一键批量抠图</button>
+          </div>
+          <div class="muted" style="font-size:11px;margin-top:8px">提示：先用吸管点画面背景，再点「预览本帧效果」微调容差，最后批量。</div>
+        </div>
+      </div>
+      <div class="foot"><button class="primary" id="btnGo6">下一步：导出 →</button></div>
+    </section>
+
+    <!-- 6 导出 -->
+    <section class="pane" data-pane="6">
+      <div class="h">⑥ 导出 <small>仅两种格式</small></div>
+      <div class="card" style="max-width:560px">
+        <div class="info" id="outInfo">—</div>
+        <label>播放帧率 <input type="number" id="outFps" value="12" min="1" max="60"> fps</label>
+        <div class="row">
+          <button class="primary" id="btnGif">导出透明 GIF 动画</button>
+          <button class="ghost" id="btnGifPrev">仅预览</button>
+          <button class="primary" id="btnZip">导出 ZIP（PSD 分层）</button>
+          <button class="ghost" id="btnZipPrev">仅预览</button>
+        </div>
+        <div id="exPreview" style="margin-top:14px"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="park"></div>
+
+<script>
+/* ============ 基础工具 ============ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const mk = t => document.createElement(t);
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const cvs = (w,h) => { const c = mk('canvas'); c.width=w; c.height=h; return c; };
+const toBlob = (c,t='image/png') => new Promise(r => c.toBlob(r,t));
+const loadImg = url => new Promise((res,rej) => { const i = new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+const sleep = () => new Promise(r => setTimeout(r,0));
+const fmtT = s => { const m=Math.floor(s/60); return m+':'+(s-m*60).toFixed(3).padStart(6,'0'); };
+
+function status(t){ $('#status').textContent = t; }
+function prog(p,txt){ $('#bar').firstElementChild.style.width = (p*100).toFixed(1)+'%'; if(txt) status(txt); }
+async function tick(i,n,txt){ prog(i/n, txt+' '+i+'/'+n); await sleep(); }
+
+function download(blob,name){
+  const a = mk('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+}
+
+/* ============ 状态 ============ */
+const S = { vids:[], cur:null, seq:0 };
+const STEP_NAMES = ['① 时间裁剪','② 间隔抽帧','③ 帧筛选','④ 画布框裁','⑤ 批量抠图','⑥ 导出'];
+
+function buildSteps(){
+  const box = $('#steps'); box.innerHTML='';
+  STEP_NAMES.forEach((n,i)=>{
+    const b = mk('button'); b.textContent = n; b.dataset.go = i+1;
+    b.onclick = ()=> goto(i+1); box.appendChild(b);
+  });
+}
+function goto(n){
+  if(!S.cur) return;
+  n = clamp(n,1,6);
+  if(n > S.cur.step) { status('请先完成前面的步骤'); return; }
+  S.cur.stepNow = n;
+  $$('.pane').forEach(p => p.classList.toggle('on', +p.dataset.pane === n));
+  if(n===1) $('#vidSlot').after($('#vidHost')); else $('#park').appendChild($('#vidHost'));
+  [...$('#steps').children].forEach((b,i)=> b.classList.toggle('on', i+1===n));
+  if(n===3) renderThumbs();
+  if(n===4) openCrop();
+  if(n===5) openMatte();
+  if(n===6) refreshOut();
+  $('#empty').style.display='none';
+}
+function unlock(n){ if(S.cur && n>S.cur.step) S.cur.step=n; refreshSteps(); }
+function refreshSteps(){ [...$('#steps').children].forEach((b,i)=> b.disabled = (i+1) > (S.cur?S.cur.step:1)); }
+
+/* ============ 视频列表 ============ */
+$('#btnImport').onclick = ()=> $('#fileIn').click();
+$('#fileIn').onchange = e => {
+  const fs = [...e.target.files];
+  let add = 10 - S.vids.length;
+  for(const f of fs){
+    if(add<=0) { status('最多 10 个视频'); break; }
+    S.vids.push({ id:++S.seq, name:f.name, file:f, url:URL.createObjectURL(f), dur:0, w:0, h:0, fps:30,
+                  frames:[], crop:null, res:null, step:1, stepNow:1, matted:false });
+    add--;
+  }
+  e.target.value='';
+  renderList();
+};
+function renderList(){
+  const box = $('#vlist'); box.innerHTML='';
+  $('#cnt').textContent = S.vids.length + '/10';
+  S.vids.forEach(v=>{
+    const d = mk('div'); d.className = 'vid' + (S.cur===v?' on':'');
+    const c = mk('div');
+    const nm = mk('div'); nm.className='nm'; nm.textContent = v.name; nm.title = v.name;
+    const st = mk('div'); st.className='st'; st.textContent = v.frames.length? (v.frames.length+' 帧 · '+v.frames.filter(f=>f.sel).length+' 选中') : '未处理';
+    c.appendChild(nm); c.appendChild(st);
+    const x = mk('button'); x.className='x'; x.textContent='×'; x.title='移除';
+    x.onclick = ev => { ev.stopPropagation(); removeVid(v); };
+    d.appendChild(c); d.appendChild(x);
+    d.onclick = ()=> openVid(v);
+    box.appendChild(d);
+  });
+}
+function removeVid(v){
+  if(S.cur===v) closeVid();
+  v.frames.forEach(f=>{ URL.revokeObjectURL(f.url); if(f.res) URL.revokeObjectURL(f.res); if(f.cropRes) URL.revokeObjectURL(f.cropRes); });
+  URL.revokeObjectURL(v.url);
+  S.vids = S.vids.filter(x=>x!==v);
+  renderList();
+}
+function closeVid(){
+  S.cur = null; M = null;
+  $$('.pane').forEach(p=>p.classList.remove('on'));
+  $('#empty').style.display='block';
+  $('#status').textContent='已退出当前视频，可切换其他视频';
+  $('#bar').firstElementChild.style.width='0';
+  renderList(); refreshSteps();
+}
+(function(){
+  const b = mk('button'); b.textContent='退出当前视频'; b.className='mini'; b.style.marginLeft='auto';
+  b.onclick = ()=> S.cur ? closeVid() : status('当前没有处理中的视频');
+  document.querySelector('header').insertBefore(b, $('#status'));
+})();
+
+const vid = $('#vid');
+async function meta(v){
+  return new Promise(res=>{
+    if(v.readyState>=1) return res();
+    const f=()=>{v.removeEventListener('loadedmetadata',f);res();};
+    v.addEventListener('loadedmetadata',f); setTimeout(res,6000);
+  });
+}
+async function detectFps(v){
+  if(!v.requestVideoFrameCallback) return 30;
+  const wasMuted = v.muted; v.muted = true;
+  try{
+    v.currentTime = 0; await seekEnd(v);
+    await v.play();
+    const ts=[]; const t0=performance.now();
+    await new Promise(res=>{
+      const step=(now,m)=>{ ts.push(m.mediaTime);
+        if(performance.now()-t0>700 || v.ended || ts.length>80) return res();
+        v.requestVideoFrameCallback(step); };
+      v.requestVideoFrameCallback(step);
+    });
+    v.pause(); v.currentTime=0; await seekEnd(v); v.muted = wasMuted;
+    if(ts.length<4) return 30;
+    const d=[]; for(let i=1;i<ts.length;i++) d.push(ts[i]-ts[i-1]);
+    d.sort((a,b)=>a-b); const med=d[d.length>>1];
+    if(!(med>0)) return 30;
+    return clamp(Math.round(1/med*1000)/1000, 10, 120);
+  }catch(e){ v.muted = wasMuted; return 30; }
+}
+function seekEnd(v){ return new Promise(res=>{ let done=false; const f=()=>{ if(done)return; done=true; res(); };
+  v.addEventListener('seeked',f,{once:true}); setTimeout(f,4000); }); }
+
+async function openVid(v){
+  if(S.cur===v){ goto(1); return; }
+  if(v.frames.length===0){
+    status('正在读取视频信息…');
+    vid.src = v.url; vid.load(); await meta(vid);
+    v.dur = vid.duration || 0; v.w = vid.videoWidth; v.h = vid.videoHeight;
+    if(!v.dur || isNaN(v.dur)) { status('无法解析该视频，请换一个格式（推荐 MP4/H264）'); return; }
+    v.fps = await detectFps(vid);
+    if(v.t1 == null){ v.t0 = 0; v.t1 = v.dur; }
+  } else {
+    vid.src = v.url;
+  }
+  const setT = (sId,msId,val)=>{ $('#'+sId).value = Math.floor(val); $('#'+msId).value = Math.round((val-Math.floor(val))*1000); };
+  setT('tsS','tsMS', v.t0||0); setT('teS','teMS', v.t1!=null? v.t1 : v.dur);
+  $('#fps').value = v.fps;
+  S.cur = v; unlock(2);
+  $('#vinfo').innerHTML = `文件：${v.name}<br>时长：${fmtT(v.dur)}　分辨率：${v.w}×${v.h}<br>识别帧率：${v.fps} fps　大小：${(v.file.size/1048576).toFixed(1)} MB`;
+  renderList();
+  goto(v.frames.length?3:1);
+}
+$('#btnSS').onclick = ()=>{ const t=vid.currentTime; $('#tsS').value=Math.floor(t); $('#tsMS').value=Math.round((t%1)*1000); updEst(); };
+$('#btnSE').onclick = ()=>{ const t=vid.currentTime; $('#teS').value=Math.floor(t); $('#teMS').value=Math.round((t%1)*1000); updEst(); };
+$('#btnAll').onclick = ()=>{ $('#tsS').value=0;$('#tsMS').value=0;$('#teS').value=Math.floor(S.cur.dur);$('#teMS').value=Math.round((S.cur.dur%1)*1000); updEst(); };
+$('#btnFromNow').onclick = ()=>{ const t=vid.currentTime; $('#tsS').value=Math.floor(t); $('#tsMS').value=Math.round((t%1)*1000); updEst(); };
+$('#btnGo2').onclick = ()=> goto(2);
+function getRange(){
+  const s = (+$('#tsS').value||0) + (+$('#tsMS').value||0)/1000;
+  const e = (+$('#teS').value||0) + (+$('#teMS').value||0)/1000;
+  return [clamp(s,0,S.cur.dur), clamp(e,0,S.cur.dur)];
+}
+['tsS','tsMS','teS','teMS','fps','everyN'].forEach(id=>{ $('#'+id).addEventListener('input', updEst); });
+function updEst(){
+  if(!S.cur) return;
+  const [s,e] = getRange(); const n = Math.max(1,+$('#everyN').value||1);
+  const fps = +$('#fps').value || S.cur.fps;
+  const f = Math.max(0, Math.floor((Math.max(0,e-s))*fps/n)+1);
+  $('#est').textContent = `区间 ${fmtT(s)} → ${fmtT(e)}（${(e-s).toFixed(3)}s）　预计 ${f} 帧`;
+}
+
+/* ============ 抽帧 ============ */
+const FF = { ok:false, ff:null };
+$('#btnFF').onclick = async ()=>{
+  if(FF.ok){ FF.ok=false; $('#btnFF').textContent='启用 ffmpeg.wasm 精确抽帧（需联网）'; status('已切回原生解码引擎'); return; }
+  status('正在加载 ffmpeg.wasm（约 30MB，需联网）…');
+  try{
+    const { FFmpeg } = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
+    const { toBlobURL } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+    const ff = new FFmpeg();
+    const base = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    await ff.load({ coreURL: await toBlobURL(base+'/ffmpeg-core.js','text/javascript'),
+                    wasmURL: await toBlobURL(base+'/ffmpeg-core.wasm','application/wasm') });
+    FF.ff = ff; FF.ok = true;
+    $('#btnFF').textContent = '✓ ffmpeg 已启用（点击切回原生）';
+    status('ffmpeg.wasm 就绪，抽帧将按帧序号精确提取');
+  }catch(e){ status('ffmpeg 加载失败（离线或受限），继续使用原生解码引擎'); }
+};
+$('#btnExtract').onclick = extract;
+async function extract(){
+  const v = S.cur; if(!v) return;
+  const [s,e] = getRange();
+  if(e-s <= 0){ status('结束时间必须大于起始时间'); return; }
+  const n = Math.max(1, +$('#everyN').value||1);
+  const mw = Math.max(0, +$('#maxW').value||0);
+  v.fps = +$('#fps').value || v.fps; v.t0 = s; v.t1 = e;
+  v.frames.forEach(f=>{ URL.revokeObjectURL(f.url); if(f.res) URL.revokeObjectURL(f.res); if(f.cropRes) URL.revokeObjectURL(f.cropRes); });
+  v.frames = []; v.crop = null; v.matted = false; v.step = 2;
+  $('#btnGo3').disabled = true;
+  let times = [];
+  const stepSec = n / v.fps;
+  for(let t=s; t<=e+1e-6; t+=stepSec) times.push(t);
+  if(times.length>400 && !confirm('预计 '+times.length+' 帧，数量较大可能占用较多内存，继续？')) return;
+  status('开始解析帧…');
+  let ok = false;
+  if(FF.ok){ try{ ok = await extractFF(v, s, e, n, mw); }catch(err){ console.warn(err); ok=false; } }
+  if(!ok) await extractNative(v, times, mw);
+  if(v.frames.length===0){ status('未抽取到帧，请检查时间区间'); return; }
+  $('#btnGo3').disabled = false; unlock(3);
+  status(`解析完成，共 ${v.frames.length} 帧`);
+  renderList(); goto(3);
+}
+async function extractNative(v, times, mw){
+  for(let i=0;i<times.length;i++){
+    const b = await grab(times[i], mw);
+    if(b){
+      const url = URL.createObjectURL(b);
+      const im = await loadImg(url);
+      v.frames.push({ t:times[i], url, w:im.width, h:im.height, sel:true, res:null, cropRes:null });
+    }
+    await tick(i+1, times.length, '抽帧中');
+  }
+}
+async function grab(t, mw){
+  vid.pause();
+  vid.currentTime = clamp(t, 0, Math.max(0,(vid.duration||0)-0.001));
+  await seekEnd(vid);
+  if(!vid.videoWidth) return null;
+  const W = vid.videoWidth, H = vid.videoHeight;
+  const s = (mw>0 && W>mw) ? mw/W : 1;
+  const c = cvs(Math.round(W*s), Math.round(H*s));
+  c.getContext('2d').drawImage(vid,0,0,c.width,c.height);
+  return await toBlob(c);
+}
+async function extractFF(v, s, e, n, mw){
+  const { fetchFile } = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+  const ff = FF.ff, input = 'in_' + v.id + '.mp4';
+  status('ffmpeg：写入文件…');
+  await ff.writeFile(input, await fetchFile(v.file));
+  const scale = mw>0 ? `,scale=${mw}:-2` : '';
+  const fps = (v.fps/n).toFixed(5);
+  status('ffmpeg：抽帧中…');
+  await ff.exec(['-ss', s.toFixed(4), '-t', (e-s).toFixed(4), '-i', input,
+                 '-vf', 'fps='+fps+scale, '-f', 'image2', 'o%05d.png']);
+  const total = Math.floor((e-s)*v.fps/n)+1;
+  for(let i=1;i<=total;i++){
+    const nm = 'o' + String(i).padStart(5,'0') + '.png';
+    let d; try{ d = await ff.readFile(nm); }catch(err){ break; }
+    const b = new Blob([d.buffer? d.buffer.slice(d.byteOffset,d.byteOffset+d.byteLength): d], {type:'image/png'});
+    const im = await loadImg(URL.createObjectURL(b));
+    v.frames.push({ t: s + i*n/v.fps, url:URL.createObjectURL(b), w:im.width, h:im.height, sel:true, res:null, cropRes:null });
+    try{ await ff.deleteFile(nm); }catch(e){}
+    await tick(i, total, 'ffmpeg 抽帧中');
+  }
+  try{ await ff.deleteFile(input); }catch(e){}
+  return v.frames.length>0;
+}
+$('#btnGo3').onclick = ()=> goto(3);
+
+/* ============ ③ 帧筛选 ============ */
+function selFrames(v = S.cur){ return v ? v.frames.filter(f=>f.sel) : []; }
+function renderThumbs(){
+  const v = S.cur, box = $('#thumbs'); box.innerHTML='';
+  v.frames.forEach((f,i)=>{
+    const d = mk('div'); d.className = 'thumb' + (f.sel?' sel':'');
+    d.style.backgroundImage = `url(${f.res||f.url})`;
+    const t = mk('i'); t.textContent = '#'+(i+1); d.appendChild(t);
+    d.onclick = ()=>{ f.sel = !f.sel; d.classList.toggle('sel', f.sel); updSel(); renderList(); };
+    box.appendChild(d);
+  });
+  updSel();
+}
+function updSel(){ $('#selInfo').textContent = `已选 ${selFrames().length} / ${S.cur.frames.length} 帧`; }
+$('#btnAllF').onclick = ()=>{ S.cur.frames.forEach(f=>f.sel=true); renderThumbs(); };
+$('#btnInvF').onclick = ()=>{ S.cur.frames.forEach(f=>f.sel=!f.sel); renderThumbs(); };
+$('#btnNonF').onclick = ()=>{ S.cur.frames.forEach(f=>f.sel=false); renderThumbs(); };
+$('#btnGo4').onclick = ()=>{ if(!selFrames().length){ status('请至少选择 1 帧'); return; } unlock(4); goto(4); };
+
+/* ============ ④ 画布框裁 ============ */
+const cc = $('#ccanvas'), cctx = cc.getContext('2d');
+let cimg=null, cscale=1, crect={x:0,y:0,w:0,h:0}, cdrag=null;
+function fit(w,h,mw,mh){ return Math.min(1, mw/w, mh/h); }
+function openCrop(){
+  const v = S.cur, f = selFrames(v)[0];
+  loadImg(f.url).then(img=>{
+    cimg = img;
+    cscale = fit(img.width, img.height, 900, 480);
+    cc.width = Math.round(img.width*cscale); cc.height = Math.round(img.height*cscale);
+    crect = v.crop ? {...v.crop} : {x:0,y:0,w:img.width,h:img.height};
+    drawCrop();
+  });
+}
+function drawCrop(){
+  if(!cimg) return;
+  cctx.clearRect(0,0,cc.width,cc.height);
+  cctx.drawImage(cimg,0,0,cc.width,cc.height);
+  const r = { x:crect.x*cscale, y:crect.y*cscale, w:crect.w*cscale, h:crect.h*cscale };
+  cctx.fillStyle='rgba(6,8,12,.62)';
+  cctx.fillRect(0,0,cc.width,r.y);
+  cctx.fillRect(0,r.y+r.h,cc.width,cc.height-r.y-r.h);
+  cctx.fillRect(0,r.y,r.x,r.h);
+  cctx.fillRect(r.x+r.w,r.y,cc.width-r.x-r.w,r.h);
+  cctx.strokeStyle='#4c8dff'; cctx.lineWidth=1;
+  cctx.strokeRect(r.x+.5,r.y+.5,r.w-1,r.h-1);
+  cctx.strokeStyle='rgba(255,255,255,.35)'; cctx.setLineDash([4,4]);
+  for(let i=1;i<3;i++){ cctx.beginPath(); cctx.moveTo(r.x+r.w*i/3,r.y); cctx.lineTo(r.x+r.w*i/3,r.y+r.h);
+    cctx.moveTo(r.x,r.y+r.h*i/3); cctx.lineTo(r.x+r.w,r.y+r.h*i/3); cctx.stroke(); }
+  cctx.setLineDash([]);
+  cctx.fillStyle='#fff'; cctx.strokeStyle='#2f6fe4';
+  handles(r).forEach(p=>{ cctx.fillRect(p.x-3,p.y-3,6,6); cctx.strokeRect(p.x-3.5,p.y-3.5,7,7); });
+  $('#cropInfo').textContent = `裁剪区：x=${crect.x} y=${crect.y} ${crect.w}×${crect.h} px（原图 ${cimg.width}×${cimg.height}）`;
+}
+function handles(r){ const p=[];
+  for(let i=0;i<3;i++) for(let j=0;j<3;j++){ if(i===1&&j===1) continue;
+    p.push({x:r.x+r.w*i/2, y:r.y+r.h*j/2, d:(i-1)+','+(j-1)}); }
+  return p;
+}
+function cpos(e){ const b = cc.getBoundingClientRect();
+  return { x:(e.clientX-b.left)*(cc.width/b.width), y:(e.clientY-b.top)*(cc.height/b.height) }; }
+cc.addEventListener('mousedown', e=>{
+  if(!cimg) return;
+  const p = cpos(e), r={x:crect.x*cscale,y:crect.y*cscale,w:crect.w*cscale,h:crect.h*cscale};
+  const hit = handles(r).find(h=>Math.abs(h.x-p.x)<7 && Math.abs(h.y-p.y)<7);
+  if(hit){ cdrag={m:'size',d:hit.d,s:{...crect},o:p}; return; }
+  if(p.x>r.x&&p.x<r.x+r.w&&p.y>r.y&&p.y<r.y+r.h){ cdrag={m:'move',s:{...crect},o:p}; return; }
+  cdrag={m:'new',o:p}; crect={x:Math.round(p.x/cscale),y:Math.round(p.y/cscale),w:0,h:0}; drawCrop();
+});
+window.addEventListener('mousemove', e=>{
+  if(!cdrag||!cimg) return;
+  const p = cpos(e);
+  const W=cimg.width, H=cimg.height;
+  if(cdrag.m==='new'){
+    const x0=Math.min(cdrag.o.x,p.x)/cscale, y0=Math.min(cdrag.o.y,p.y)/cscale;
+    const x1=Math.max(cdrag.o.x,p.x)/cscale, y1=Math.max(cdrag.o.y,p.y)/cscale;
+    crect={x:Math.round(x0),y:Math.round(y0),w:Math.round(x1-x0),h:Math.round(y1-y0)};
+  } else if(cdrag.m==='move'){
+    const dx=(p.x-cdrag.o.x)/cscale, dy=(p.y-cdrag.o.y)/cscale;
+    crect={...cdrag.s, x:clamp(Math.round(cdrag.s.x+dx),0,W-cdrag.s.w), y:clamp(Math.round(cdrag.s.y+dy),0,H-cdrag.s.h)};
+  } else {
+    const [ax,ay]=cdrag.d.split(',').map(Number); const s=cdrag.s;
+    let x=s.x,y=s.y,w=s.w,h=s.h;
+    const dx=Math.round((p.x-cdrag.o.x)/cscale), dy=Math.round((p.y-cdrag.o.y)/cscale);
+    if(ax<0){ x=clamp(s.x+dx,0,s.x+s.w-4); w=s.w-(x-s.x); }
+    if(ax>0){ w=clamp(s.w+dx,4,W-s.x); }
+    if(ay<0){ y=clamp(s.y+dy,0,s.y+s.h-4); h=s.h-(y-s.y); }
+    if(ay>0){ h=clamp(s.h+dy,4,H-s.y); }
+    crect={x,y,w,h};
+  }
+  crect.w=clamp(crect.w,4,W-crect.x); crect.h=clamp(crect.h,4,H-crect.y);
+  drawCrop();
+});
+window.addEventListener('mouseup', ()=>{ if(cdrag){ cdrag=null; drawCrop(); } });
+$('#btnResetCrop').onclick = ()=>{ if(!cimg) return; crect={x:0,y:0,w:cimg.width,h:cimg.height}; drawCrop(); };
+$('#btnGo5').onclick = ()=>{
+  const v = S.cur;
+  if(crect.w<4||crect.h<4){ status('请先框选有效区域'); return; }
+  v.crop = {...crect};
+  selFrames(v).forEach(f=>{ if(f.res) URL.revokeObjectURL(f.res); if(f.cropRes) URL.revokeObjectURL(f.cropRes); f.res=null; f.cropRes=null; });
+  v.matted = false; unlock(5); goto(5);
+  status(`裁剪区已应用：${crect.w}×${crect.h}`);
+};
+
+/* ============ ⑤ 抠图 ============ */
+const mc = $('#mcanvas'), mctx = mc.getContext('2d');
+let M = null, mmode='chroma', mtool='pick', bg=[255,255,255];
+function cfg(){
+  return { mode:mmode, bg:bg.slice(), tol:(+$('#tol').value)/100, soft:$('#soft').checked,
+           defr:$('#defr').checked, prot:$('#prot').checked, athr:(+$('#athr').value)/100 };
+}
+$('#mChroma').onclick = ()=>{ mmode='chroma'; $('#mChroma').classList.add('on'); $('#mAlpha').classList.remove('on');
+  $('#chromaCfg').style.display=''; $('#alphaCfg').style.display='none'; };
+$('#mAlpha').onclick = ()=>{ mmode='alpha'; $('#mAlpha').classList.add('on'); $('#mChroma').classList.remove('on');
+  $('#chromaCfg').style.display='none'; $('#alphaCfg').style.display=''; };
+$('#btnPick').onclick = ()=>{ mtool='pick'; $('#btnPick').classList.add('on'); $('#btnErase').classList.remove('on'); };
+$('#btnErase').onclick = ()=>{ mtool='erase'; $('#btnErase').classList.add('on'); $('#btnPick').classList.remove('on'); };
+$('#tol').oninput = ()=> $('#tolTxt').textContent = $('#tol').value+'%';
+$('#athr').oninput = ()=> $('#athrTxt').textContent = $('#athr').value+'%';
+$('#erSize').oninput = ()=> $('#erTxt').textContent = $('#erSize').value+'px';
+$('#tol').oninput(); $('#athr').oninput(); $('#erSize').oninput();
+function setBg(c){ bg=c; $('#bgSw').style.background=`rgb(${c[0]},${c[1]},${c[2]})`; $('#bgTxt').textContent=`rgb(${c[0]},${c[1]},${c[2]})`; }
+
+/* YCbCr 转换（Rec.601），用于色度差抠图 */
+function rgb2ycbcr(r,g,b){ return [ 0.299*r+0.587*g+0.114*b,
+  (-0.169*r-0.331*g+0.5*b)+128, (0.5*r-0.419*g-0.081*b)+128 ]; }
+function writeA(d,i,a,o){
+  if(a<=0.004){ d[i+3]=0; return; }
+  if(o.defr && a<0.985 && a>0.05){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    // 仅当像素色度接近背景时才去溢色；彩色主体边缘保留原色，避免“主体颜色被扣掉”
+    const [,Cb,Cr]=rgb2ycbcr(r,g,b);
+    const cd=Math.hypot(Cb-o._Cbb,Cr-o._Crb)/180;
+    if(cd<0.4){
+      d[i]   = clamp((r  -(1-a)*o.bg[0])/a, 0, 255);
+      d[i+1] = clamp((g  -(1-a)*o.bg[1])/a, 0, 255);
+      d[i+2] = clamp((b  -(1-a)*o.bg[2])/a, 0, 255);
+    }
+  }
+  d[i+3] = Math.round(a*255);
+}
+function applyMatte(d, o){
+  if(o.mode==='alpha'){
+    o._Cbb=128; o._Crb=128;
+    for(let i=0;i<d.length;i+=4){
+      let a=d[i+3]/255;
+      if(o.soft){ const lo=Math.max(0,o.athr-0.25), hi=Math.min(1,o.athr+0.25);
+        a = a<=lo ? 0 : a>=hi ? 1 : (a-lo)/(hi-lo); }
+      else a = a>=o.athr ? 1 : 0;
+      writeA(d,i,a,o);
+    }
+    return;
+  }
+  /* —— 色度差抠图：以 YCbCr 色度(CbCr)距离为判据，保护主体色彩 —— */
+  const [br,bg1,bb]=o.bg;
+  const [Yb,Cbb,Crb]=rgb2ycbcr(br,bg1,bb);
+  o._Cbb=Cbb; o._Crb=Crb;
+  const bgSat=Math.hypot(Cbb-128,Crb-128);          // 背景饱和度（白/灰背景≈0）
+  const ER=180, NR=o.tol, FE=o.soft?Math.max(0.1,NR*0.6):0;
+  const bgNeutral = bgSat<35;                        // 白/浅色背景
+  const keyCh = br>=bg1 ? (br>=bb?0:2) : (bg1>=bb?1:2); // 彩色背景(绿幕/蓝幕)的主导通道
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    const [,Cb,Cr]=rgb2ycbcr(r,g,b);
+    const cd=Math.hypot(Cb-Cbb,Cr-Crb)/ER;           // 色度差（核心判据）
+    let s;
+    if(bgNeutral){
+      const rgbD=Math.hypot(r-br,g-bg1,b-bb)/441.673; // 与背景的明度/色彩差
+      const psat=Math.hypot(Cb-128,Cr-128);           // 像素自身饱和度
+      s=Math.max(cd, rgbD);                           // 色度或明暗任一明显→保留主体
+      if(o.prot && psat>50) s=Math.max(s,0.5);        // 彩色主体强制保留
+    } else {                                         // 绿幕/蓝幕：屏幕平衡法 + 色度差
+      const key=[r,g,b][keyCh], oth=(r+g+b-key)/2;
+      const purity=(key-oth)/255;                    // 越像屏幕越大
+      s=cd*0.6 + Math.max(0,0.5-purity)*1.2;
+    }
+    const a = s<=NR ? 0 : s>=NR+FE ? 1 : (s-NR)/FE;
+    writeA(d,i,a,o);
+  }
+}
+function setRes(f, blob){
+  if(f.res) URL.revokeObjectURL(f.res);
+  f.res = URL.createObjectURL(blob); f.resBlob = blob;
+}
+async function croppedURL(f){
+  if(f.cropRes) return f.cropRes;
+  const v=S.cur, img=await loadImg(f.url), c=cvs(v.crop.w,v.crop.h);
+  c.getContext('2d').drawImage(img, v.crop.x, v.crop.y, v.crop.w, v.crop.h, 0,0,v.crop.w,v.crop.h);
+  f.cropBlob = await toBlob(c);
+  f.cropRes = URL.createObjectURL(f.cropBlob);
+  return f.cropRes;
+}
+async function openMatte(){
+  const v = S.cur;
+  if(!v.crop){ v.crop = {x:0,y:0,w:v.frames[0].w,h:v.frames[0].h}; }
+  if(!v.bgPicked){ v.bgPicked = true; await autoBg(); }
+  M = null; await loadMatte(0);
+}
+async function autoBg(){
+  const v=S.cur, f=selFrames(v)[0];
+  const img = await loadImg(await croppedURL(f));
+  const c = cvs(v.crop.w,v.crop.h), cx=c.getContext('2d');
+  cx.drawImage(img,0,0);
+  const W=c.width,H=c.height, d = cx.getImageData(0,0,W,H).data;
+  // 沿整圈边缘采样求平均背景色，比单取四角更稳（主体偶尔会碰到拐角）
+  let r=0,g=0,b=0,n=0; const step=Math.max(1, Math.floor((W+H)/120));
+  const add=(x,y)=>{ const p=(y*W+x)*4; r+=d[p];g+=d[p+1];b+=d[p+2];n++; };
+  for(let x=0;x<W;x+=step){ add(x,0); add(x,H-1); }
+  for(let y=1;y<H-1;y+=step){ add(0,y); add(W-1,y); }
+  if(!n){ setBg([255,255,255]); return; }
+  setBg([Math.round(r/n),Math.round(g/n),Math.round(b/n)]);
+  status('已自动识别背景色 rgb('+bg.join(',')+')，可用吸管微调');
+}
+$('#btnAutoBg').onclick = autoBg;
+async function loadMatte(i){
+  const v=S.cur, fs=selFrames(v);
+  if(!fs.length) return;
+  if(M && M.dirty) await saveMatte();
+  const f = fs[i];
+  const img = await loadImg(f.res || await croppedURL(f));
+  mc.width = v.crop.w; mc.height = v.crop.h;
+  mctx.clearRect(0,0,mc.width,mc.height);
+  mctx.drawImage(img,0,0);
+  const data = mctx.getImageData(0,0,mc.width,mc.height);
+  M = { i, data, dirty:false };
+  $('#mIdx').textContent = `第 ${i+1} / ${fs.length} 帧`;
+}
+async function saveMatte(){
+  if(!M) return;
+  mctx.putImageData(M.data,0,0);
+  setRes(selFrames(S.cur)[M.i], await toBlob(mc));
+  M.dirty = false;
+}
+$('#btnPrevF').onclick = ()=>{ if(M) loadMatte((M.i-1+selFrames().length)%selFrames().length); };
+$('#btnNextF').onclick = ()=>{ if(M) loadMatte((M.i+1)%selFrames().length); };
+$('#btnPrev1').onclick = async ()=>{
+  if(!M) return; const o=cfg(); applyMatte(M.data.data,o); mctx.putImageData(M.data,0,0); M.dirty=true; status('已预览本帧抠图效果');
+};
+$('#btnUndo').onclick = async ()=>{
+  if(!M) return; const f=selFrames(S.cur)[M.i];
+  if(f.res) URL.revokeObjectURL(f.res); f.res=null; await loadMatte(M.i); status('本帧已还原为裁剪原图');
+};
+$('#btnMatte').onclick = async ()=>{
+  const v=S.cur, fs=selFrames(v); if(!fs.length) return;
+  const o=cfg();
+  for(let i=0;i<fs.length;i++){
+    const img = await loadImg(await croppedURL(fs[i]));
+    const c = cvs(v.crop.w,v.crop.h), cx=c.getContext('2d');
+    cx.drawImage(img,0,0);
+    const id = cx.getImageData(0,0,c.width,c.height);
+    applyMatte(id.data,o); cx.putImageData(id,0,0);
+    setRes(fs[i], await toBlob(c));
+    await tick(i+1, fs.length, '批量抠图中');
+  }
+  v.matted = true; unlock(6); M=null; await loadMatte(0);
+  status(`批量抠图完成：${fs.length} 帧（${o.mode==='alpha'?'Alpha 通道':'色差'}算法）`);
+};
+$('#btnGo6').onclick = ()=>{ unlock(6); goto(6); };
+
+/* 画布交互：吸管 / 橡皮擦 */
+let mdrawing=false;
+function mpos(e){ const b=mc.getBoundingClientRect();
+  return { x:(e.clientX-b.left)*(mc.width/b.width), y:(e.clientY-b.top)*(mc.height/b.height) }; }
+function eraseAt(p,r){
+  const d=M.data.data, W=mc.width, H=mc.height, soft=Math.max(1,r*0.5);
+  const x0=Math.max(0,Math.floor(p.x-r)), x1=Math.min(W-1,Math.ceil(p.x+r));
+  const y0=Math.max(0,Math.floor(p.y-r)), y1=Math.min(H-1,Math.ceil(p.y+r));
+  for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){
+    const dx=x-p.x, dy=y-p.y, dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>r) continue;
+    let k = dist<=r-soft ? 0 : (dist-(r-soft))/soft;
+    const a = (y*W+x)*4;
+    d[a+3] = Math.round(d[a+3]*(1-k));
+  }
+}
+mc.addEventListener('mousedown', e=>{
+  if(!M) return; const p=mpos(e);
+  if(mtool==='pick'){
+    const a=(Math.round(p.y)*mc.width+Math.round(p.x))*4, d=M.data.data;
+    setBg([d[a],d[a+1],d[a+2]]); status('已拾取背景色 rgb('+d[a]+','+d[a+1]+','+d[a+2]+')'); return;
+  }
+  mdrawing=true; eraseAt(p, +$('#erSize').value/2); mctx.putImageData(M.data,0,0); M.dirty=true;
+});
+window.addEventListener('mousemove', e=>{
+  if(!mdrawing||!M||mtool!=='erase') return;
+  eraseAt(mpos(e), +$('#erSize').value/2); mctx.putImageData(M.data,0,0); M.dirty=true;
+});
+window.addEventListener('mouseup', async ()=>{ if(mdrawing){ mdrawing=false; if(M) await saveMatte(); } });
+
+/* ============ 字节流写入器 ============ */
+class BW{
+  constructor(){ this.c=[]; this.b=new Uint8Array(65536); this.p=0; this.len=0; }
+  need(n){ if(this.p+n>this.b.length){ this.c.push(this.b.subarray(0,this.p)); this.b=new Uint8Array(Math.max(65536,n)); this.p=0; } }
+  u8(v){ this.need(1); this.b[this.p++]=v&255; this.len++; }
+  u16(v){ this.need(2); this.b[this.p++]=v&255; this.b[this.p++]=(v>>8)&255; this.len+=2; }
+  i16(v){ this.u16(v<0?v+65536:v); }
+  u32(v){ this.need(4); this.b[this.p++]=v&255; this.b[this.p++]=(v>>8)&255; this.b[this.p++]=(v>>16)&255; this.b[this.p++]=(v>>>24)&255; this.len+=4; }
+  i32(v){ this.u32(v<0?v+4294967296:v); }
+  /* 大端（PSD 用） */
+  u16be(v){ this.need(2); this.b[this.p++]=(v>>8)&255; this.b[this.p++]=v&255; this.len+=2; }
+  i16be(v){ this.u16be(v<0?v+65536:v); }
+  u32be(v){ this.need(4); this.b[this.p++]=(v>>>24)&255; this.b[this.p++]=(v>>16)&255; this.b[this.p++]=(v>>8)&255; this.b[this.p++]=v&255; this.len+=4; }
+  i32be(v){ this.u32be(v<0?v+4294967296:v); }
+  str(s){ const a=new TextEncoder().encode(s); this.need(a.length); this.b.set(a,this.p); this.p+=a.length; this.len+=a.length; }
+  raw(a){ if(a.length>this.b.length-this.p){ this.c.push(this.b.subarray(0,this.p)); this.c.push(a); this.b=new Uint8Array(65536); this.p=0; }
+          else { this.b.set(a,this.p); this.p+=a.length; } this.len+=a.length; }
+  cat(chunks,len){ this.c.push(this.b.subarray(0,this.p)); this.b=new Uint8Array(65536); this.p=0;
+                   for(const c of chunks) this.c.push(c); this.len+=len; }
+  out(){ this.c.push(this.b.subarray(0,this.p)); this.b=new Uint8Array(0); this.p=0; return this.c; }
+}
+
+/* ============ 获取每帧 RGBA ============ */
+async function frameRGBA(f){
+  const v=S.cur, url = f.res || await croppedURL(f);
+  const img = await loadImg(url);
+  const c = cvs(v.crop.w, v.crop.h), cx=c.getContext('2d');
+  cx.drawImage(img,0,0);
+  return cx.getImageData(0,0,c.width,c.height);
+}
+
+/* ============ 调色板：中位切分 ============ */
+function buildPalette(datas, nc){
+  const MAX = 150000;
+  const total = datas.length*datas[0].data.length/4;
+  const step = Math.max(1, Math.ceil(total/MAX));
+  const buf = new Uint8Array(MAX*3); let n=0;
+  for(const d of datas){ const a=d.data;
+    for(let i=0;i<a.length;i+=4*step){ if(a[i+3]<200) continue; if(n>=MAX) break;
+      buf[n*3]=a[i]; buf[n*3+1]=a[i+1]; buf[n*3+2]=a[i+2]; n++; } }
+  if(n===0) return [[128,128,128]];
+  const idx = new Uint32Array(n); for(let i=0;i<n;i++) idx[i]=i;
+  const rangeOf = b => { const mn=[255,255,255], mx=[0,0,0];
+    for(let i=b[0];i<b[1];i++){ const p=idx[i]*3;
+      for(let c=0;c<3;c++){ const v=buf[p+c]; if(v<mn[c])mn[c]=v; if(v>mx[c])mx[c]=v; } }
+    return {mn,mx}; };
+  let boxes=[[0,n]], ranges=[rangeOf([0,n])];
+  while(boxes.length<nc){
+    let bi=-1,best=-1;
+    for(let i=0;i<boxes.length;i++){ const b=boxes[i], r=ranges[i], cnt=b[1]-b[0];
+      if(cnt<2) continue;
+      const w=Math.max(r.mx[0]-r.mn[0], r.mx[1]-r.mn[1], r.mx[2]-r.mn[2]);
+      if(w===0) continue;
+      const s=cnt*w; if(s>best){ best=s; bi=i; } }
+    if(bi<0) break;
+    const b=boxes[bi], r=ranges[bi];
+    let ch=0,mxw=-1; for(let c=0;c<3;c++){ const w=r.mx[c]-r.mn[c]; if(w>mxw){ mxw=w; ch=c; } }
+    idx.subarray(b[0],b[1]).sort((x,y)=>buf[x*3+ch]-buf[y*3+ch]);
+    const mid=(b[0]+b[1])>>1;
+    boxes.splice(bi,1,[b[0],mid],[mid,b[1]]);
+    ranges.splice(bi,1,rangeOf([b[0],mid]),rangeOf([mid,b[1]]));
+  }
+  const pal=[];
+  for(const b of boxes){ let s0=0,s1=0,s2=0,c=0;
+    for(let i=b[0];i<b[1];i++){ const p=idx[i]*3; s0+=buf[p]; s1+=buf[p+1]; s2+=buf[p+2]; c++; }
+    pal.push([Math.round(s0/c),Math.round(s1/c),Math.round(s2/c)]); }
+  return pal;
+}
+function makeMapper(pal){
+  const cache = new Int16Array(32768).fill(-1);
+  return (r,g,b)=>{
+    const key = ((r>>3)<<10)|((g>>3)<<5)|(b>>3);
+    let v = cache[key]; if(v>=0) return v;
+    let bi=0, bd=1e9;
+    for(let i=0;i<pal.length;i++){ const dr=r-pal[i][0], dg=g-pal[i][1], db=b-pal[i][2];
+      const d=dr*dr+dg*dg+db*db; if(d<bd){ bd=d; bi=i; } }
+    cache[key]=bi+1; return bi+1;
+  };
+}
+
+/* ============ GIF89a 编码 ============ */
+function lzwEncode(minCodeSize, data){
+  const out=[]; let cur=0, curBits=0;
+  const clear=1<<minCodeSize, eoi=clear+1;
+  let codeSize=minCodeSize+1, next=eoi+1, dict=new Map();
+  const emit=c=>{ cur |= c<<curBits; curBits+=codeSize;
+    while(curBits>=8){ out.push(cur&255); cur>>=8; curBits-=8; } };
+  emit(clear);
+  let prefix=data[0];
+  for(let i=1;i<data.length;i++){
+    const k=data[i], key=(prefix<<8)|k;
+    if(dict.has(key)){ prefix=dict.get(key); continue; }
+    emit(prefix);
+    if(next<4096){
+      dict.set(key,next++);
+      if(next > (1<<codeSize) && codeSize<12) codeSize++;
+    } else { emit(clear); dict=new Map(); next=eoi+1; codeSize=minCodeSize+1; }
+    prefix=k;
+  }
+  emit(prefix); emit(eoi);
+  if(curBits>0) out.push(cur&255);
+  return out;
+}
+function refreshOut(){
+  const v=S.cur, fs=selFrames(v);
+  $('#outInfo').innerHTML = `待导出帧：${fs.length} 帧　尺寸：${v.crop?v.crop.w+'×'+v.crop.h:'-'}<br>抠图状态：${v.matted?'已完成（透明背景）':'未执行批量抠图，将导出裁剪原图'}`;
+}
+async function genGif(){
+  const v=S.cur, fs=selFrames(v);
+  if(!fs.length){ status('没有可导出的帧'); return null; }
+  if(!v.crop){ status('请先完成画布框裁'); return null; }
+  const fps = clamp(+$('#outFps').value||12, 1, 60);
+  const W=v.crop.w, H=v.crop.h;
+  status('正在读取帧数据…');
+  const datas=[];
+  for(let i=0;i<fs.length;i++){ datas.push(await frameRGBA(fs[i])); await tick(i+1,fs.length,'读取帧'); }
+  status('正在生成调色板…'); await sleep();
+  const pal = buildPalette(datas, 255);
+  const map = makeMapper(pal);
+  const bw = new BW();
+  bw.str('GIF89a'); bw.u16(W); bw.u16(H); bw.u8(0xF7); bw.u8(0); bw.u8(0);
+  const gct = new Uint8Array(768);
+  for(let i=0;i<pal.length;i++){ gct[(i+1)*3]=pal[i][0]; gct[(i+1)*3+1]=pal[i][1]; gct[(i+1)*3+2]=pal[i][2]; }
+  bw.raw(gct);
+  bw.raw(new Uint8Array([0x21,0xFF,0x0B])); bw.str('NETSCAPE2.0');
+  bw.raw(new Uint8Array([0x03,0x01,0x00,0x00,0x00]));
+  const delay = Math.max(2, Math.round(100/fps));
+  const idx = new Uint8Array(W*H);
+  for(let fi=0; fi<datas.length; fi++){
+    const d = datas[fi].data;
+    for(let i=0,p=0;i<d.length;i+=4,p++){
+      const a=d[i+3];
+      if(a<128){ idx[p]=0; continue; }
+      const al=a/255;
+      const r=Math.round(d[i]*al + 255*(1-al));
+      const g=Math.round(d[i+1]*al + 255*(1-al));
+      const b=Math.round(d[i+2]*al + 255*(1-al));
+      idx[p]=map(r,g,b);
+    }
+    bw.raw(new Uint8Array([0x21,0xF9,0x04,0x09, delay&255, delay>>8, 0, 0]));
+    bw.raw(new Uint8Array([0x2C, 0,0, 0,0, W&255,W>>8, H&255,H>>8, 0]));
+    bw.u8(8);
+    const blocks = lzwEncode(8, idx);
+    for(let i=0;i<blocks.length;i+=255){
+      const s = blocks.slice(i,i+255); bw.u8(s.length); bw.raw(new Uint8Array(s));
+    }
+    bw.u8(0);
+    await tick(fi+1, datas.length, 'GIF 编码中');
+  }
+  bw.u8(0x3B);
+  return { blob:new Blob(bw.out(), {type:'image/gif'}), frames:datas.length, w:W, h:H };
+}
+$('#btnGif').onclick = async ()=>{
+  const r = await genGif(); if(!r) return;
+  download(r.blob, S.cur.name.replace(/\.[^.]+$/,'') + '_透明动画.gif');
+  showGifPreview(r);
+  status(`GIF 导出完成：${r.frames} 帧 ${r.w}×${r.h} / ${(r.blob.size/1048576).toFixed(2)} MB`);
+};
+$('#btnGifPrev').onclick = async ()=>{
+  const r = await genGif(); if(!r) return;
+  showGifPreview(r);
+  status('已生成预览（未下载）：'+r.frames+' 帧 '+r.w+'×'+r.h);
+};
+const CRC_T = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; }
+  return t; })();
+function crc32(u8){ let c=0xFFFFFFFF;
+  for(let i=0;i<u8.length;i++) c = CRC_T[(c^u8[i])&255] ^ (c>>>8);
+  return (c^0xFFFFFFFF)>>>0; }
+async function deflateRaw(chunks){
+  if(typeof CompressionStream === 'undefined') return null;
+  try{
+    const blob = new Blob(chunks);
+    const out = await new Response(blob.stream().pipeThrough(new CompressionStream('deflate-raw'))).blob();
+    return new Uint8Array(await out.arrayBuffer());
+  }catch(e){ return null; }
+}
+async function zipFiles(files){
+  const enc=new TextEncoder(), parts=[], central=[];
+  let offset=0;
+  const d=new Date();
+  const dosTime = ((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF;
+  const dosDate = (((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  for(const f of files){
+    const name = enc.encode(f.name);
+    const crc = f.crc!==undefined ? f.crc : crc32(f.data);
+    const raw = f.data;
+    const comp = await deflateRaw([raw]);
+    const useDeflate = comp && comp.length < raw.length;
+    const body = useDeflate ? comp : raw;
+    const lh = new Uint8Array(30+name.length); const dv = new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(6,0x0800,true);
+    dv.setUint16(8, useDeflate?8:0, true); dv.setUint16(10,dosTime,true); dv.setUint16(12,dosDate,true);
+    dv.setUint32(14,crc,true); dv.setUint32(18,body.length,true); dv.setUint32(22,raw.length,true);
+    dv.setUint16(26,name.length,true); dv.setUint16(28,0,true);
+    lh.set(name,30);
+    parts.push(lh, body);
+    const ch = new Uint8Array(46+name.length); const cv = new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+    cv.setUint16(8,0x0800,true); cv.setUint16(10, useDeflate?8:0, true);
+    cv.setUint16(12,dosTime,true); cv.setUint16(14,dosDate,true);
+    cv.setUint32(16,crc,true); cv.setUint32(20,body.length,true); cv.setUint32(24,raw.length,true);
+    cv.setUint16(28,name.length,true); cv.setUint16(30,0,true); cv.setUint16(32,0,true);
+    cv.setUint16(34,0,true); cv.setUint16(36,0,true); cv.setUint32(38,0,true);
+    cv.setUint32(42,offset,true); ch.set(name,46);
+    central.push(ch);
+    offset += lh.length + body.length;
+  }
+  const cdSize = central.reduce((a,b)=>a+b.length,0);
+  const eocd = new Uint8Array(22); const ev = new DataView(eocd.buffer);
+  ev.setUint32(0,0x06054b50,true); ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true); ev.setUint32(16,offset,true);
+  return new Blob([...parts, ...central, eocd], {type:'application/zip'});
+}
+
+/* ============ PSD 分层写入 ============ */
+function psdName(s,i){ return ('Frame_'+String(i+1).padStart(3,'0')).slice(0,31); }
+function psdPlane(d, id, W, H){
+  const pl = new Uint8Array(W*H);
+  if(id === -1){ for(let i=0,p=0;i<d.length;i+=4,p++) pl[p] = d[i+3]; }
+  else { for(let i=0,p=0;i<d.length;i+=4,p++) pl[p] = d[i+3] === 0 ? 0 : d[i+id]; }
+  return pl;
+}
+function buildPSD(frames, W, H){
+  // frames: [{name, data:Uint8ClampedArray(RGBA)}]，通道原始数据（由 ZIP deflate 负责压缩）
+  const bw = new BW();
+  bw.str('8BPS'); bw.u16be(1); bw.raw(new Uint8Array(6)); bw.u16be(3);  // 通道数 3
+  bw.u32be(H); bw.u32be(W); bw.u16be(8); bw.u16be(3);                   // 8bit / RGB
+  bw.u32be(0);                                                          // color mode data
+  bw.u32be(0);                                                          // image resources
+
+  /* 先算长度（层信息段需按 4 字节对齐），避免缓存全部通道数据 */
+  const N = frames.length, PL = W*H, CH = [[-1],[0],[1],[2]];
+  const nameBytes = frames.map((f,k)=>{
+    const nm = psdName(f.name, k), len = Math.ceil((nm.length+1)/4)*4;
+    const b = new Uint8Array(len); b[0] = nm.length;
+    new TextEncoder().encodeInto(nm, b.subarray(1));
+    return b;
+  });
+  const recSize = k => 16 + 2 + 4*6 + 12 + 4 + (4 + 4 + nameBytes[k].length);
+  let liLen = 2;
+  for(let k=0;k<N;k++) liLen += recSize(k) + 4*(2 + PL);
+  const pad = (4 - (liLen % 4)) % 4;   // 层信息段按 4 字节对齐
+  liLen += pad;
+  const secLen = 4 + liLen + 4;
+
+  /* --- Layer & mask info 段（长度字段不含自身 4 字节） --- */
+  bw.u32be(secLen);
+  bw.u32be(liLen);
+  bw.i16be(N);
+  const chanInfos = [];
+  for(let k=0;k<N;k++){
+    bw.i32be(0); bw.i32be(0); bw.i32be(H); bw.i32be(W);   // top,left,bottom,right
+    bw.u16be(4);                                          // 通道数：A,R,G,B
+    for(const [id] of CH) { bw.i16be(id); bw.u32be(2 + PL); }
+    bw.str('8BIM'); bw.str('norm'); bw.u8(255); bw.u8(0); bw.u8(0); bw.u8(0);
+    bw.u32be(4 + 4 + nameBytes[k].length);   // extra data：mask + blending ranges + 名称
+    bw.u32be(0); bw.u32be(0); bw.raw(nameBytes[k]);
+  }
+  for(let k=0;k<N;k++)
+    for(const [id] of CH){ bw.u16be(0); bw.raw(psdPlane(frames[k].data, id, W, H)); }
+  for(let i=0;i<pad;i++) bw.u8(0);
+  bw.u32be(0);                                            // global layer mask info
+
+  /* --- 合并图（白底合成） --- */
+  const acc = new Uint8ClampedArray(W*H*3).fill(255);
+  for(const f of frames){ const d=f.data;
+    for(let i=0,p=0;i<d.length;i+=4,p++){
+      const a=d[i+3]/255; if(a<=0) continue;
+      acc[p*3]   = Math.round(d[i]  *a + acc[p*3]  *(1-a));
+      acc[p*3+1] = Math.round(d[i+1]*a + acc[p*3+1]*(1-a));
+      acc[p*3+2] = Math.round(d[i+2]*a + acc[p*3+2]*(1-a));
+    } }
+  bw.u16be(0);   // 合并图压缩方式：原始
+  for(let c=0;c<3;c++){
+    const pl = new Uint8Array(W*H);
+    for(let p=0;p<W*H;p++) pl[p] = acc[p*3+c];
+    bw.raw(pl);
+  }
+  return bw.out();
+}
+async function genZip(){
+  const v=S.cur, fs=selFrames(v);
+  if(!fs.length){ status('没有可导出的帧'); return null; }
+  if(!v.crop){ status('请先完成画布框裁'); return null; }
+  const W=v.crop.w, H=v.crop.h;
+  status('正在读取帧数据…');
+  const frames=[];
+  for(let i=0;i<fs.length;i++){ const d=await frameRGBA(fs[i]);
+    frames.push({ name:'frame_'+(i+1), data:d.data }); await tick(i+1,fs.length,'读取帧'); }
+  status('正在写入 PSD（'+frames.length+' 个图层）…'); await sleep();
+  const chunks = buildPSD(frames, W, H);
+  const psdBlob = new Blob(chunks, {type:'image/vnd.adobe.photoshop'});
+  const psdBytes = new Uint8Array(await psdBlob.arrayBuffer());
+  const files = [{ name:'sprite.psd', data:psdBytes, crc:crc32(psdBytes) }];
+  const pngs=[];
+  for(let i=0;i<frames.length;i++){
+    const f=fs[i];
+    if(!f.resBlob) await croppedURL(f);
+    const u8 = new Uint8Array(await (f.resBlob || f.cropBlob).arrayBuffer());
+    files.push({ name:'frames/frame_'+String(i+1).padStart(3,'0')+'.png', data:u8, crc:crc32(u8) });
+    if(i<6) pngs.push(new Blob([u8], {type:'image/png'}));   // 预览用前几帧
+    await tick(i+1, frames.length, '打包 PNG');
+  }
+  status('正在压缩 ZIP…'); await sleep();
+  const zip = await zipFiles(files);
+  return { blob:zip, pngs, n:frames.length, w:W, h:H };
+}
+$('#btnZip').onclick = async ()=>{
+  const r = await genZip(); if(!r) return;
+  download(r.blob, S.cur.name.replace(/\.[^.]+$/,'') + '_分层PSD.zip');
+  showZipPreview(r);
+  status(`ZIP 导出完成：PSD ${r.n} 图层 + ${r.n} 张 PNG / ${(r.blob.size/1048576).toFixed(2)} MB`);
+};
+$('#btnZipPrev').onclick = async ()=>{
+  const r = await genZip(); if(!r) return;
+  showZipPreview(r);
+  status('已生成预览（未下载）：'+r.n+' 图层 / '+r.n+' PNG');
+};
+
+/* ============ 导出预览 ============ */
+let prevUrl=null;
+function revokePrev(){ if(prevUrl){ URL.revokeObjectURL(prevUrl); prevUrl=null; } }
+function checker(){ return 'repeating-conic-gradient(#cfd3da 0% 25%,#fff 0% 50%) 50%/16px 16px'; }
+function showGifPreview(r){
+  revokePrev(); prevUrl = URL.createObjectURL(r.blob);
+  $('#exPreview').innerHTML =
+    `<div class="pvT">透明 GIF 预览（动画）：</div>
+     <img class="pvImg" src="${prevUrl}" style="background:${checker()}">
+     <div class="pvMeta">${r.frames} 帧 · ${r.w}×${r.h} · ${(r.blob.size/1048576).toFixed(2)} MB · 透明背景循环播放</div>`;
+}
+function showZipPreview(r){
+  const imgs = r.pngs.map(b=>{ const u=URL.createObjectURL(b);
+    return `<img class="pvThumb" src="${u}" style="background:${checker()}">`; }).join('');
+  $('#exPreview').innerHTML =
+    `<div class="pvT">ZIP 内容预览：sprite.psd（${r.n} 个图层）+ frames/frame_*.png（${r.n} 张）</div>
+     <div class="pvRow">${imgs}</div>
+     <div class="pvMeta">PSD 分层 + 每帧透明 PNG · ${r.w}×${r.h} · ${(r.blob.size/1048576).toFixed(2)} MB（缩略图为前 ${r.pngs.length} 帧）</div>`;
+}
+
+/* ============ 滑块填充（让 accent 轨道填充到当前值）============ */
+function paintRange(el){
+  const min=+el.min||0, max=+el.max||100, p=(+el.value-min)/(max-min)*100;
+  el.style.background = `linear-gradient(to right, var(--accent) 0%, var(--accent) ${p}%, #2a313d ${p}%, #2a313d 100%)`;
+}
+$$('input[type=range]').forEach(el=>{ paintRange(el); el.addEventListener('input',()=>paintRange(el)); });
+
+/* ============ 启动 ============ */
+buildSteps(); refreshSteps();
+$('#vidSlot').after($('#vidHost'));
+</script>
+</body>
+</html>
