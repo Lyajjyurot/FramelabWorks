@@ -122,11 +122,6 @@ FramelabWorks.html（~1200 行）
 
 欢迎提交 Issue 和 Pull Request。
 
-```bash
-git clone https://github.com/yourname/FramelabWorks.git
-# 直接在浏览器打开即可开发
-```
-
 ---
 
 ## 许可证

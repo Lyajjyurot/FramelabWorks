@@ -9,3 +9,17 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# 环境 / 密钥
+.env
+.env.*
+*.pem
+*.key
+
+# 依赖 & 构建产物
+node_modules/
+dist/
+build/
+
+# 日志
+*.log
