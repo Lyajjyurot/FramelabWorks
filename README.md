@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/-%E5%8D%95%E6%96%87%E4%BB%B6-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="单文件">
   <img src="https://img.shields.io/badge/-%E4%B8%8D%E4%B8%8A%E4%BC%A0-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="不上传">
   <br>
-  <img src="https://img.shields.io/github/license/yourname/FramelabWorks?style=flat-square&labelColor=15171f&color=8b93a3" alt="License">
+  <img src="https://img.shields.io/github/license/Lyajjyurot/FramelabWorks?style=flat-square&labelColor=15171f&color=8b93a3" alt="License">
 </p>
 
 <br>
@@ -45,7 +45,7 @@
 | **②** | 间隔抽帧 | 每 N 帧抽 1 帧，可选 ffmpeg.wasm 精确模式 |
 | **③** | 帧筛选 | 缩略图网格，全选 / 反选 / 单帧点选 |
 | **④** | 画布框裁 | 拖拽画框 + 八把手缩放 + 九宫格辅助线 |
-| **⑤** | 批量抠图 | 色差抠图 / Alpha 通道提取，吸管 + 橡皮擦微调 |
+| **⑤** | 批量抠图 | YCbCr 色差抠图，吸管取色 + 橡皮擦手动微调 |
 | **⑥** | 导出 | 透明 GIF · ZIP（PSD 分层 + 每帧 PNG） |
 
 ---
@@ -88,10 +88,6 @@ xdg-open FramelabWorks.html # Linux
 - 自动识别背景主通道，智能保护主体彩色边缘
 - 容差滑块实时调节，所见即所得
 
-### Alpha 通道提取
-
-直接读取视频帧的 Alpha 通道（如果源文件包含），配合阈值控制二值化 / 羽化程度。
-
 ---
 
 ## 技术实现
@@ -100,7 +96,7 @@ xdg-open FramelabWorks.html # Linux
 FramelabWorks.html（~1200 行）
 ├── 视频解码：浏览器原生 <video> + canvas 截帧
 ├── 可选增强：ffmpeg.wasm（按需从 CDN 加载）
-├── 抠图引擎：YCbCr 色度差 / Alpha 阈值
+├── 抠图引擎：YCbCr 色度差（吸管取色 + 橡皮擦微调）
 ├── GIF 编码：纯 JS LZW 编码器
 ├── PSD 写入：自实现 PSD 二进制格式
 └── ZIP 打包：自实现 ZIP + deflate（利用 CompressionStream API）

@@ -228,16 +228,12 @@ kbd{background:var(--panel2);border:1px solid var(--border);border-radius:5px;pa
         <div class="card">
           <div class="row">
             <button class="mini on" id="mChroma">色差快速抠图</button>
-            <button class="mini" id="mAlpha">Alpha 通道提取</button>
           </div>
           <div class="sep"></div>
           <div id="chromaCfg">
             <label>背景色 <div class="swatch" id="bgSw"></div><button class="mini" id="btnAutoBg">自动识别</button><span class="muted" id="bgTxt"></span></label>
             <label>容差 <input type="range" id="tol" min="1" max="100" value="6"><span class="muted" id="tolTxt"></span></label>
             <label><input type="checkbox" id="prot" checked> 保护主体色彩（防误删）</label>
-          </div>
-          <div id="alphaCfg" style="display:none">
-            <label>Alpha 阈值 <input type="range" id="athr" min="0" max="100" value="50"><span class="muted" id="athrTxt"></span></label>
           </div>
           <label><input type="checkbox" id="soft" checked> 抗锯齿羽化边缘</label>
           <label><input type="checkbox" id="defr" checked> 去除白边 / 溢出色</label>
@@ -640,18 +636,15 @@ const mc = $('#mcanvas'), mctx = mc.getContext('2d');
 let M = null, mmode='chroma', mtool='pick', bg=[255,255,255];
 function cfg(){
   return { mode:mmode, bg:bg.slice(), tol:(+$('#tol').value)/100, soft:$('#soft').checked,
-           defr:$('#defr').checked, prot:$('#prot').checked, athr:(+$('#athr').value)/100 };
+           defr:$('#defr').checked, prot:$('#prot').checked };
 }
-$('#mChroma').onclick = ()=>{ mmode='chroma'; $('#mChroma').classList.add('on'); $('#mAlpha').classList.remove('on');
-  $('#chromaCfg').style.display=''; $('#alphaCfg').style.display='none'; };
-$('#mAlpha').onclick = ()=>{ mmode='alpha'; $('#mAlpha').classList.add('on'); $('#mChroma').classList.remove('on');
-  $('#chromaCfg').style.display='none'; $('#alphaCfg').style.display=''; };
+$('#mChroma').onclick = ()=>{ mmode='chroma'; $('#mChroma').classList.add('on');
+  $('#chromaCfg').style.display=''; };
 $('#btnPick').onclick = ()=>{ mtool='pick'; $('#btnPick').classList.add('on'); $('#btnErase').classList.remove('on'); };
 $('#btnErase').onclick = ()=>{ mtool='erase'; $('#btnErase').classList.add('on'); $('#btnPick').classList.remove('on'); };
 $('#tol').oninput = ()=> $('#tolTxt').textContent = $('#tol').value+'%';
-$('#athr').oninput = ()=> $('#athrTxt').textContent = $('#athr').value+'%';
 $('#erSize').oninput = ()=> $('#erTxt').textContent = $('#erSize').value+'px';
-$('#tol').oninput(); $('#athr').oninput(); $('#erSize').oninput();
+$('#tol').oninput(); $('#erSize').oninput();
 function setBg(c){ bg=c; $('#bgSw').style.background=`rgb(${c[0]},${c[1]},${c[2]})`; $('#bgTxt').textContent=`rgb(${c[0]},${c[1]},${c[2]})`; }
 
 /* YCbCr 转换（Rec.601），用于色度差抠图 */
@@ -673,17 +666,6 @@ function writeA(d,i,a,o){
   d[i+3] = Math.round(a*255);
 }
 function applyMatte(d, o){
-  if(o.mode==='alpha'){
-    o._Cbb=128; o._Crb=128;
-    for(let i=0;i<d.length;i+=4){
-      let a=d[i+3]/255;
-      if(o.soft){ const lo=Math.max(0,o.athr-0.25), hi=Math.min(1,o.athr+0.25);
-        a = a<=lo ? 0 : a>=hi ? 1 : (a-lo)/(hi-lo); }
-      else a = a>=o.athr ? 1 : 0;
-      writeA(d,i,a,o);
-    }
-    return;
-  }
   /* —— 色度差抠图：以 YCbCr 色度(CbCr)距离为判据，保护主体色彩 —— */
   const [br,bg1,bb]=o.bg;
   const [Yb,Cbb,Crb]=rgb2ycbcr(br,bg1,bb);
@@ -786,7 +768,7 @@ $('#btnMatte').onclick = async ()=>{
     await tick(i+1, fs.length, '批量抠图中');
   }
   v.matted = true; unlock(6); M=null; await loadMatte(0);
-  status(`批量抠图完成：${fs.length} 帧（${o.mode==='alpha'?'Alpha 通道':'色差'}算法）`);
+  status(`批量抠图完成：${fs.length} 帧（色差算法）`);
 };
 $('#btnGo6').onclick = ()=>{ unlock(6); goto(6); };
 
