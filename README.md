@@ -22,6 +22,7 @@
 <br>
 
 ---
+<img width="376" height="140" alt="logo" src="https://github.com/user-attachments/assets/e75eaf16-2d32-4b83-8d82-11b48584935c" />
 
 ## 为什么做这个
 
@@ -47,7 +48,6 @@
 | **④** | 画布框裁 | 拖拽画框 + 八把手缩放 + 九宫格辅助线 |
 | **⑤** | 批量抠图 | YCbCr 色差抠图，吸管取色 + 橡皮擦手动微调 |
 | **⑥** | 导出 | 透明 GIF · ZIP（PSD 分层 + 每帧 PNG） |
-<img width="1052" height="597" alt="image" src="https://github.com/user-attachments/assets/f9ad24a4-fcae-4e03-a99b-4fa278ac7976" />
 
 ---
 
@@ -61,7 +61,8 @@
 <img width="651" height="292" alt="间隔" src="https://github.com/user-attachents/assets/fabd1659-274b-4f24-9e04-f89a5d919c4f" />
 
 - 帧筛选
-<img width="1052" height="597" alt="2" src="https://github.com/user-attachments/assets/6e5d7ec8-6b82-4f71-80f7-8aa155ed999d" />
+<img width="1052" height="597" alt="2" src="https://github.com/user-attachments/assets/d0e2c5fa-9566-4bac-bc49-d12d53a213f7" />
+
 
 - 画布裁切
 <img width="997" height="568" alt="裁切" src="https://github.com/user-attachments/assets/c3d49430-fb9f-488a-a363-7c8ee11f230d" />
