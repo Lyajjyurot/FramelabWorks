@@ -58,7 +58,8 @@
 <img width="1056" height="538" alt="1" src="https://github.com/user-attachments/assets/034e282a-1fc5-4842-80e2-38695a3fd4ed" />
 
 - 间隔抽帧
-<img width="651" height="292" alt="间隔" src="https://github.com/user-attachents/assets/fabd1659-274b-4f24-9e04-f89a5d919c4f" />
+<img width="651" height="292" alt="间隔" src="https://github.com/user-attachments/assets/793325aa-f500-4c97-897f-e5b0c67e7061" />
+
 
 - 帧筛选
 <img width="1052" height="597" alt="2" src="https://github.com/user-attachments/assets/d0e2c5fa-9566-4bac-bc49-d12d53a213f7" />
