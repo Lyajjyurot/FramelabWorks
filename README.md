@@ -47,8 +47,22 @@
 | **④** | 画布框裁 | 拖拽画框 + 八把手缩放 + 九宫格辅助线 |
 | **⑤** | 批量抠图 | YCbCr 色差抠图，吸管取色 + 橡皮擦手动微调 |
 | **⑥** | 导出 | 透明 GIF · ZIP（PSD 分层 + 每帧 PNG） |
+<img width="1052" height="597" alt="image" src="https://github.com/user-attachments/assets/f9ad24a4-fcae-4e03-a99b-4fa278ac7976" />
 
 ---
+- 时间裁剪
+<img width="1056" height="538" alt="1" src="https://github.com/user-attachments/assets/034e282a-1fc5-4842-80e2-38695a3fd4ed" />
+- 间隔抽帧
+<img width="651" height="292" alt="间隔" src="https://github.com/user-attachents/assets/fabd1659-274b-4f24-9e04-f89a5d919c4f" />
+- 帧筛选
+<img width="1052" height="597" alt="2" src="https://github.com/user-attachments/assets/6e5d7ec8-6b82-4f71-80f7-8aa155ed999d" />
+- 画布裁切
+<img width="997" height="568" alt="裁切" src="https://github.com/user-attachments/assets/c3d49430-fb9f-488a-a363-7c8ee11f230d" />
+- 批量抠图
+<img width="1012" height="541" alt="抠像" src="https://github.com/user-attachments/assets/ad147b3f-89cb-4ce5-9721-73c54f4d6eda" />
+- 导出
+<img width="1069" height="544" alt="导出" src="https://github.com/user-attachments/assets/0e93311b-3a9b-46c9-8ab9-3262b888b31e" />
+
 
 ## 亮点
 
