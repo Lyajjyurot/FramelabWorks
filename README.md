@@ -77,7 +77,8 @@
 <img width="1012" height="541" alt="抠像" src="https://github.com/user-attachments/assets/ad147b3f-89cb-4ce5-9721-73c54f4d6eda" />
 
 - 导出【未抠像仅示范】
-<img width="1069" height="544" alt="导出" src="https://github.com/user-attachments/assets/0e93311b-3a9b-46c9-8ab9-3262b888b31e" />
+<img width="958" height="488" alt="123" src="https://github.com/user-attachments/assets/27cf89c9-f875-422d-b271-0c6db75914d4" />
+
 
 
 ## 亮点
