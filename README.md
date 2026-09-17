@@ -53,33 +53,6 @@
 | **⑤** | 批量抠图 | YCbCr 色差抠图，吸管取色 + 橡皮擦手动微调 |
 | **⑥** | 导出 | 透明 GIF（可压缩至 ≤1MB / 256KB / 128KB）· ZIP（PSD 分层 + 每帧 PNG） |
 
----
-
-## 界面预览
-
-### ① 时间裁剪
-
-![时间裁剪](assets/1.png)
-
-### ② 间隔抽帧
-
-![间隔抽帧](assets/interval.png)
-
-### ③ 帧筛选
-
-![帧筛选](assets/2.png)
-
-### ④ 画布框裁
-
-![画布框裁](assets/crop.png)
-
-### ⑤ 批量抠图
-
-![批量抠图](assets/matte.png)
-
-### ⑥ 导出
-
-![导出](assets/export.png)
 
 ---
 
@@ -127,10 +100,6 @@
 # 方式一：双击文件
 FramelabWorks.html
 
-# 方式二：命令行
-start FramelabWorks.html    # Windows
-open FramelabWorks.html     # macOS
-xdg-open FramelabWorks.html # Linux
 ```
 
 推荐 **Chrome / Edge** 等现代浏览器。
@@ -152,13 +121,13 @@ xdg-open FramelabWorks.html # Linux
 ## 技术实现
 
 ```
-FramelabWorks.html（~1200 行）
+FramelabWorks.html
 ├── 视频解码：浏览器原生 <video> + canvas 截帧
 ├── 可选增强：ffmpeg.wasm（按需从 CDN 加载）
 ├── 抠图引擎：YCbCr 色度差（吸管取色 + 橡皮擦微调）
 ├── GIF 编码：纯 JS LZW 编码器
 ├── PSD 写入：自实现 PSD 二进制格式
-└── ZIP 打包：自实现 ZIP + deflate（利用 CompressionStream API）
+└── ZIP 打包：自实现 ZIP + deflate
 ```
 
 全部逻辑在一个文件内，可离线使用。
@@ -177,11 +146,7 @@ FramelabWorks.html（~1200 行）
 
 欢迎提交 Issue 和 Pull Request。
 
-1. Fork 本仓库
-2. 创建特性分支（`git checkout -b feature/xxx`）
-3. 提交更改（`git commit -m 'Add xxx'`）
-4. 推送到分支（`git push origin feature/xxx`）
-5. 创建 Pull Request
+
 
 ---
 
