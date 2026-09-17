@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="assets/logo.png" alt="FramelabWorks" width="600">
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/FramelabWorks-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="FramelabWorks">
   <img src="https://img.shields.io/badge/-%E7%BA%AF%E6%9C%AC%E5%9C%B0%E7%A6%BB%E7%BA%BF-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="纯本">
   <img src="https://img.shields.io/badge/-%E5%8D%95%E6%96%87%E4%BB%B6-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="单文件">
@@ -30,10 +34,10 @@
 
 现有的方案要么要装软件、要么要上传到服务器、要么导出格式不满意。
 
-**FramelabWorks**就是为了解决这个问题：
+**FramelabWorks** 就是为了解决这个问题：
 
 > 打开一个 HTML 文件，拖入视频，点几下，就能拿到透明 GIF 或 PSD 分层文件。
-> 
+>
 > **你的视频永远不会离开你的电脑。**
 
 ---
@@ -47,7 +51,35 @@
 | **③** | 帧筛选 | 缩略图网格，全选 / 反选 / 单帧点选 |
 | **④** | 画布框裁 | 拖拽画框 + 八把手缩放 + 九宫格辅助线 |
 | **⑤** | 批量抠图 | YCbCr 色差抠图，吸管取色 + 橡皮擦手动微调 |
-| **⑥** | 导出 | 透明 GIF · ZIP（PSD 分层 + 每帧 PNG） |
+| **⑥** | 导出 | 透明 GIF（可压缩至 ≤1MB / 256KB / 128KB）· ZIP（PSD 分层 + 每帧 PNG） |
+
+---
+
+## 界面预览
+
+### ① 时间裁剪
+
+![时间裁剪](assets/1.png)
+
+### ② 间隔抽帧
+
+![间隔抽帧](assets/interval.png)
+
+### ③ 帧筛选
+
+![帧筛选](assets/2.png)
+
+### ④ 画布框裁
+
+![画布框裁](assets/crop.png)
+
+### ⑤ 批量抠图
+
+![批量抠图](assets/matte.png)
+
+### ⑥ 导出
+
+![导出](assets/export.png)
 
 ---
 
@@ -144,6 +176,12 @@ FramelabWorks.html（~1200 行）
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request。
+
+1. Fork 本仓库
+2. 创建特性分支（`git checkout -b feature/xxx`）
+3. 提交更改（`git commit -m 'Add xxx'`）
+4. 推送到分支（`git push origin feature/xxx`）
+5. 创建 Pull Request
 
 ---
 
