@@ -255,6 +255,14 @@ kbd{background:var(--panel2);border:1px solid var(--border);border-radius:5px;pa
       <div class="card" style="max-width:560px">
         <div class="info" id="outInfo">—</div>
         <label>播放帧率 <input type="number" id="outFps" value="12" min="1" max="60"> fps</label>
+        <label>GIF 目标大小
+          <select id="gifSize">
+            <option value="0">不压缩（原样）</option>
+            <option value="1048576">≤ 1 MB</option>
+            <option value="262144">≤ 256 KB</option>
+            <option value="131072">≤ 128 KB</option>
+          </select>
+        </label>
         <div class="row">
           <button class="primary" id="btnGif">导出透明 GIF 动画</button>
           <button class="ghost" id="btnGifPrev">仅预览</button>
@@ -909,7 +917,8 @@ function refreshOut(){
   const v=S.cur, fs=selFrames(v);
   $('#outInfo').innerHTML = `待导出帧：${fs.length} 帧　尺寸：${v.crop?v.crop.w+'×'+v.crop.h:'-'}<br>抠图状态：${v.matted?'已完成（透明背景）':'未执行批量抠图，将导出裁剪原图'}`;
 }
-async function genGif(){
+function gifTarget(){ return +$('#gifSize').value || 0; }
+async function genGif(targetBytes){
   const v=S.cur, fs=selFrames(v);
   if(!fs.length){ status('没有可导出的帧'); return null; }
   if(!v.crop){ status('请先完成画布框裁'); return null; }
@@ -921,47 +930,70 @@ async function genGif(){
   status('正在生成调色板…'); await sleep();
   const pal = buildPalette(datas, 255);
   const map = makeMapper(pal);
-  const bw = new BW();
-  bw.str('GIF89a'); bw.u16(W); bw.u16(H); bw.u8(0xF7); bw.u8(0); bw.u8(0);
-  const gct = new Uint8Array(768);
-  for(let i=0;i<pal.length;i++){ gct[(i+1)*3]=pal[i][0]; gct[(i+1)*3+1]=pal[i][1]; gct[(i+1)*3+2]=pal[i][2]; }
-  bw.raw(gct);
-  bw.raw(new Uint8Array([0x21,0xFF,0x0B])); bw.str('NETSCAPE2.0');
-  bw.raw(new Uint8Array([0x03,0x01,0x00,0x00,0x00]));
   const delay = Math.max(2, Math.round(100/fps));
-  const idx = new Uint8Array(W*H);
-  for(let fi=0; fi<datas.length; fi++){
-    const d = datas[fi].data;
-    for(let i=0,p=0;i<d.length;i+=4,p++){
-      const a=d[i+3];
-      if(a<128){ idx[p]=0; continue; }
-      const al=a/255;
-      const r=Math.round(d[i]*al + 255*(1-al));
-      const g=Math.round(d[i+1]*al + 255*(1-al));
-      const b=Math.round(d[i+2]*al + 255*(1-al));
-      idx[p]=map(r,g,b);
+  const full = cvs(W,H), fctx = full.getContext('2d');
+  function encode(sw, sh){
+    const bw = new BW();
+    bw.str('GIF89a'); bw.u16(sw); bw.u16(sh); bw.u8(0xF7); bw.u8(0); bw.u8(0);
+    const gct = new Uint8Array(768);
+    for(let i=0;i<pal.length;i++){ gct[(i+1)*3]=pal[i][0]; gct[(i+1)*3+1]=pal[i][1]; gct[(i+1)*3+2]=pal[i][2]; }
+    bw.raw(gct);
+    bw.raw(new Uint8Array([0x21,0xFF,0x0B])); bw.str('NETSCAPE2.0');
+    bw.raw(new Uint8Array([0x03,0x01,0x00,0x00,0x00]));
+    const idx = new Uint8Array(sw*sh);
+    const tmp = cvs(sw, sh), tctx = tmp.getContext('2d');
+    for(let fi=0; fi<datas.length; fi++){
+      fctx.putImageData(datas[fi], 0, 0);
+      tctx.clearRect(0,0,sw,sh);
+      tctx.imageSmoothingEnabled = true;
+      tctx.drawImage(full, 0,0, sw, sh);
+      const d = tctx.getImageData(0,0,sw,sh).data;
+      for(let i=0,p=0;i<d.length;i+=4,p++){
+        const a=d[i+3];
+        if(a<128){ idx[p]=0; continue; }
+        const al=a/255;
+        const r=Math.round(d[i]*al + 255*(1-al));
+        const g=Math.round(d[i+1]*al + 255*(1-al));
+        const b=Math.round(d[i+2]*al + 255*(1-al));
+        idx[p]=map(r,g,b);
+      }
+      bw.raw(new Uint8Array([0x21,0xF9,0x04,0x09, delay&255, delay>>8, 0, 0]));
+      bw.raw(new Uint8Array([0x2C, 0,0, 0,0, sw&255,sw>>8, sh&255,sh>>8, 0]));
+      bw.u8(8);
+      const blocks = lzwEncode(8, idx);
+      for(let i=0;i<blocks.length;i+=255){
+        const s = blocks.slice(i,i+255); bw.u8(s.length); bw.raw(new Uint8Array(s));
+      }
+      bw.u8(0);
     }
-    bw.raw(new Uint8Array([0x21,0xF9,0x04,0x09, delay&255, delay>>8, 0, 0]));
-    bw.raw(new Uint8Array([0x2C, 0,0, 0,0, W&255,W>>8, H&255,H>>8, 0]));
-    bw.u8(8);
-    const blocks = lzwEncode(8, idx);
-    for(let i=0;i<blocks.length;i+=255){
-      const s = blocks.slice(i,i+255); bw.u8(s.length); bw.raw(new Uint8Array(s));
-    }
-    bw.u8(0);
-    await tick(fi+1, datas.length, 'GIF 编码中');
+    bw.u8(0x3B);
+    return new Blob(bw.out(), {type:'image/gif'});
   }
-  bw.u8(0x3B);
-  return { blob:new Blob(bw.out(), {type:'image/gif'}), frames:datas.length, w:W, h:H };
+  let sw=W, sh=H, blob=encode(W,H);
+  if(targetBytes && blob.size>targetBytes){
+    let s=clamp(Math.sqrt(targetBytes/blob.size),0.1,1);
+    sw=Math.max(1,Math.round(W*s)); sh=Math.max(1,Math.round(H*s));
+    blob=encode(sw,sh);
+    let guard=0;
+    while(blob.size>targetBytes && sw>1 && sh>1 && guard++<6){
+      const f=clamp(Math.sqrt(targetBytes/blob.size)*0.95,0.1,1); // 留余量确保持续收敛
+      const nw=Math.max(1,Math.round(sw*f)), nh=Math.max(1,Math.round(sh*f));
+      if(nw===sw && nh===sh) break;            // 已无法再缩小，接受当前最优
+      sw=nw; sh=nh; blob=encode(sw,sh);
+    }
+  }
+  return { blob, frames:datas.length, w:sw, h:sh };
 }
 $('#btnGif').onclick = async ()=>{
-  const r = await genGif(); if(!r) return;
+  const t = gifTarget();
+  const r = await genGif(t); if(!r) return;
   download(r.blob, S.cur.name.replace(/\.[^.]+$/,'') + '_透明动画.gif');
   showGifPreview(r);
-  status(`GIF 导出完成：${r.frames} 帧 ${r.w}×${r.h} / ${(r.blob.size/1048576).toFixed(2)} MB`);
+  const sz = (r.blob.size/1048576).toFixed(2);
+  status(`GIF 导出完成：${r.frames} 帧 ${r.w}×${r.h} / ${sz} MB` + (t? `（已压缩至 ≤${(t/1024).toFixed(0)}KB）`:''));
 };
 $('#btnGifPrev').onclick = async ()=>{
-  const r = await genGif(); if(!r) return;
+  const r = await genGif(gifTarget()); if(!r) return;
   showGifPreview(r);
   status('已生成预览（未下载）：'+r.frames+' 帧 '+r.w+'×'+r.h);
 };
