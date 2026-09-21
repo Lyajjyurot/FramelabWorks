@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/logo.png" alt="FramelabWorks" width="600">
-</p>
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/FramelabWorks-3ecf8e?style=for-the-badge&labelColor=0c0d11" alt="FramelabWorks">
